@@ -1,3 +1,4 @@
+const alex = require("alexcolor");
 const express = require('express')();
 const dns = require("dns");
 const { exec } = require("child_process");
