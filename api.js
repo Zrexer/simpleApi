@@ -1,4 +1,4 @@
-const alex = require('alexcolor');
+const alex = require('alexcolor/alexcolor/index');
 const express = require('express')();
 const dns = require("dns");
 const https = require("https");
