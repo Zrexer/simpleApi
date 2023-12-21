@@ -1,3 +1,5 @@
+#!/usr/bin/env node 
+
 const alex = require('alexcolor/alexcolor/index');
 const express = require('express')();
 const dns = require("dns");
@@ -29,11 +31,85 @@ function generateRandomString(len) {
     return result;
 };
 
-function randomInt(x){
-    const randomNumber = Math.floor(Math.random() * x) + 1;
+class BaleMessenger{
+    constructor(token){
+        this.token = String(token);
+        this.baseUrl = `https://tapi.bale.ai/bot${this.token}/`
+    }
+/*
+    post(method){
+        try{
+            https.get({
+                hostname: "tapi.bale.ai",
+                port: 443,
+                path: `/bot${this.token}/${method}`,
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer your_token'
+                  }
+            }, (dataForPost) => {
+                dataForPost.on('data', (chForPost) => {
+                    return JSON.parse(chForPost);
+                })
+            })
+        }catch (error){
+            return error;
+        }
+    }
 
-    return randomNumber;
+    get(method){
+        try{
+            https.get({
+                hostname: "tapi.bale.ai",
+                port: 443,
+                path: `/bot${this.token}/${method}`,
+                method: "GET",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer your_token'
+                  }
+            }, (dataForGet) => {
+                dataForGet.on('data', (chForGET) => {
+                    return chForGET;
+                })
+            })
+        }catch (error){
+            return error;
+        }
+    }
+*/
+    sendMessage(text = null, chat_id = null, reply_to_message_id = null){
+        if (text === null || chat_id === null){
+            return "The [ text , chat_id ]parameter cannot be empty";
+        }else{
+            try{
+                https.get({
+                    hostname: "tapi.bale.ai",
+                    port: 443,
+                    path: `/bot${this.token}/sendMessage?chat_id=${chat_id}&text=${text}&reply_to_message_id=${reply_to_message_id}`,
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer your_token'
+                      }
+                }, (dataForPost) => {
+                    dataForPost.on('data', (chForPost) => {
+                        return chForPost;
+                    })
+                })
+            }catch (error){
+                return error;
+            }
+        }
+    }
 }
+
+module.exports()
+
+const x = BaleMessenger("777813486:emucVlckFMmyHXAVMxnnPTq5Wy66inELvfPoiL5T");
+
+console.log(x.sendMessage("Hello WOrld", "554324725"))
 
 express.listen(port, () => {
     console.log(`Server (${alex.red('127.0.0.1')}) Running on ${alex.yellow(port)}`);
