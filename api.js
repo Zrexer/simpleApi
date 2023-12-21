@@ -67,7 +67,7 @@ express.get("/randomstr", (req, res, nx) => {
         res.send(
             {
                 'Dev' : "Host1let",
-                "data" : generateRandomString(String(somewhere[somewhere.length - 1]).replace("\n", "").replace("\r", '')),
+                "data" : generateRandomString(parseInt(String(somewhere[somewhere.length - 1]).replace("\n", "").replace("\r", ''))),
                 "dataType" : "string",
                 "dataLength" : String(somewhere[somewhere.length - 1]).replace("\n", "").replace("\r", '')
             }
