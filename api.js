@@ -1,6 +1,8 @@
-const alex = require("alexcolor");
+const alex = require('alexcolor');
 const express = require('express')();
 const dns = require("dns");
+const https = require("https");
+const http = require('http');
 const { exec } = require("child_process");
 
 const port = 4646;
@@ -27,14 +29,10 @@ function generateRandomString(len) {
     return result;
 };
 
-function getDomainIP(domain){
-    dns.lookup(domain, (err, addr) => {
-        if (err){
-            return err;
-        }
+function randomInt(x){
+    const randomNumber = Math.floor(Math.random() * x) + 1;
 
-        return addr;
-    })
+    return randomNumber;
 }
 
 express.listen(port, () => {
@@ -121,3 +119,33 @@ express.get("/lookup", (req, res, nx) => {
 
     }
 })
+
+express.get("/gpt4", (req, res, nx) => {
+    something += 1;
+    console.log(`The ${alex.red(something)} is Connected To Server`);
+    console.log(`Request for ${alex.green("/gpt4")}\n`);
+    
+    const text = req.query.text;
+
+    if (text === undefined){
+        res.send(
+            {
+                'Dev' : "Host1let",
+                'data' : "Please Set the Text Parameter: /gpt4?text=Hello"
+            }
+        )
+    }else{
+        https.get(`https://haji-api.ir/Free-GPT3/?text=${text}&key=hajiapi`, (result) => {
+            result.on('data', (ch) => {
+                res.send(
+                    {
+                        'Dev' : "Host1let",
+                        'ThanksTo' : "HajiAPI",
+                        'data' : JSON.parse(ch).result.answer
+                    }
+                );
+            })
+        })
+    }
+})
+
