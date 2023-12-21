@@ -36,7 +36,7 @@ function randomInt(x){
 }
 
 express.listen(port, () => {
-    console.log(`Server Running on ${port}`);
+    console.log(`Server (${alex.red('127.0.0.1')}) Running on ${alex.yellow(port)}`);
 })
 
 express.get("/randomint", (req, res, nx) => {
