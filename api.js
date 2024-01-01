@@ -1,14 +1,19 @@
 #!/usr/bin/env node 
 
 //----[ Modules ]----
-const alex = require('./node_modules/alexcolor/alexcolor/index');
+const alex = require('alexcolor/alexcolor');
 const express = require('express')();
-const fs = require('fs');
-const request = require("./node_modules/request/index");
 const time = new Date();
+const fs = require('fs');
 const https = require("https");
 const http = require("http");
 const { exec } = require("child_process");
+
+//----[ Infos ]----
+__version__ = "3.0.2";
+__dev__ = "Host1let";
+__poweredby__ = "NodeJs";
+__description__ = "a simple Api with simple Function"
 
 //----[ Variables ]----
 let somewhere = [];
@@ -108,6 +113,75 @@ function generateRandomString(len) {
     return result;
 };
 
+//----[ Downloader ]----
+function DownloadFileUrl(urlToDownload){
+    return new Promise((resv, rej) => {
+        if (String(urlToDownload).startsWith("https")){
+            try{
+                const destinationPath = "./" + String(urlToDownload).split("/")[String(urlToDownload).split("/").length - 1];
+                console.log(destinationPath)
+                https.get(urlToDownload, (response) => {
+                    const writeStream = fs.createWriteStream(destinationPath);
+                    response.pipe(writeStream);
+                    writeStream.on('finish', () => {
+                        resv(JSON.parse(JSON.stringify({
+                            "path" : destinationPath,
+                            "url" : urlToDownload,
+                            "method" : "https",
+                            "fileName" : String(urlToDownload).split("/")[String(urlToDownload).split("/").length - 1],
+                            "error" : false
+                        })));
+                });
+            }).on('error', (erx) => {
+                rej(erx)
+            })
+        }catch (err){
+            rej(err)
+        }
+    }else if(String(urlToDownload).startsWith("http")){
+        try{
+            const destinationPath = "./" + String(urlToDownload).split("/")[String(urlToDownload).split("/").length - 1];
+            console.log(destinationPath)
+            http.get(urlToDownload, (response) => {
+                const writeStream = fs.createWriteStream(destinationPath);
+                response.pipe(writeStream);
+                writeStream.on('finish', () => {
+                    resv(JSON.parse(JSON.stringify({
+                        "path" : destinationPath,
+                        "url" : urlToDownload,
+                        "method" : "http",
+                        "fileName" : String(urlToDownload).split("/")[String(urlToDownload).split("/").length - 1],
+                        "error" : false
+                    })));
+            });
+        }).on('error', (erx) => {
+            rej(erx)
+        })
+    }catch (err){
+        rej(err)
+        }
+    }else{
+        rej(JSON.parse(JSON.stringify({
+            'error' : true,
+            'main' : "please set the http or https"
+        })))
+    }
+        
+})}
+
+//----[ Read a File ]----
+function ReadFile(pathToRead){
+    return new Promise((resv, rej) => {
+        try{
+            fs.readFile(pathToRead, (err, data) => {
+                resv(data);
+            });
+        }catch (err){
+            rej(err)
+        }
+    }
+)}
+
 //----[ Go On Listen Mode ]----
 express.listen(port, host, () => {
     console.log(alex.blue("Running ON ") + alex.red(host+alex.yellow(":")+alex.red(port)));
@@ -195,3 +269,30 @@ express.get("/wiki", (req, res, nx) => {
     }
 })
 
+//----[ File Reader ]----
+express.get("/reader/file", (req, res, nx) => {
+    howMuchConnection += 1;
+    console.log(alex.yellow("{ ") + alex.green(`${howMuchConnection} `) + alex.yellow("} ") + alex.blue("Requested For ") + alex.yellow("[ ") + alex.red("/read/file")+  alex.yellow(" ]"));
+
+    const urlClient = req.query.urlFile;
+
+    if (urlClient === undefined){
+        controller.clearAllData();
+        controller.addData("data", "Please Set url Like: /reader/file?urlFile=https://example.com/file.txt");
+        res.send(controller.base)
+    }else{
+        DownloadFileUrl(urlClient).then((dataToDl) => {
+            controller.clearAllData();
+            controller.addData("info", dataToDl);
+            ReadFile("./"+dataToDl.path).then((dataToRead) => {
+                controller.addData("data", String(dataToRead));
+                res.send(controller.base)
+                fs.unlink(dataToDl.path, (err) => {
+                    if (err){
+                        console.log(err);
+                    }
+                });
+            })
+        })
+    }
+})
