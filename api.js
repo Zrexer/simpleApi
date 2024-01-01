@@ -296,3 +296,22 @@ express.get("/reader/file", (req, res, nx) => {
         })
     }
 })
+
+express.get("/music", (req, res, nx) => {
+    howMuchConnection += 1;
+    console.log(alex.yellow("{ ") + alex.green(`${howMuchConnection} `) + alex.yellow("} ") + alex.blue("Requested For ") + alex.yellow("[ ") + alex.red("/music")+  alex.yellow(" ]"));
+
+    const musicData = {
+        'pishro-ghabrestoone-hip-hop' : "https://s2.pr3m.ir/Music/1399/5/Pishro%20-%20Ghabrestoone%20Hip%20Hop.mp3",
+        "fadaei-tablo-shode" : "http://dl.parsiamusic.ir/99/03/Fadaei%20-%20Dige%20Tablo%20Shode.mp3"
+    };
+    const musicName = req.query.musicName; 
+
+    if (musicName === undefined){
+        controller.clearAllData();
+        controller.addData("data", "Please Set a Name For Music, Example: /music?musicName=pishro-ghabrestoone-hip-hop || for see the list of musics: /music?musicName=help")
+        res.send(controller.base)
+    }else if (Object.keys(musicData).includes(musicName)){
+        res.send("Hi")
+    }
+})
