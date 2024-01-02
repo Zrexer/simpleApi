@@ -11,7 +11,7 @@ const geoip = require("geoip-lite");
 const { exec } = require("child_process");
 
 //----[ Infos ]----
-__version__ = "3.0.2";
+__version__ = "3.0.4";
 __dev__ = "Host1let";
 __poweredby__ = "NodeJs";
 __description__ = "a simple Api with simple Function"
