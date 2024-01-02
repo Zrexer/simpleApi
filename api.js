@@ -7,6 +7,7 @@ const time = new Date();
 const fs = require('fs');
 const https = require("https");
 const http = require("http");
+const geoip = require("geoip-lite");
 const { exec } = require("child_process");
 
 //----[ Infos ]----
@@ -182,6 +183,25 @@ function ReadFile(pathToRead){
     }
 )}
 
+//----[ IP Information Extracter ]----
+function IPExtract(ip){
+    const geo = geoip.lookup(ip);
+
+    return JSON.parse(JSON.stringify(
+        {
+            "country" : geo.country,
+            "city" : geo.city,
+            'area' : geo.area,
+            'timezone' : geo.timezone,
+            'metro' : geo.metro,
+            'range' : geo.range,
+            'region' : geo.region,
+            'll' : geo.ll,
+            'eu' : geo.eu
+        }
+    ))
+}
+
 //----[ Go On Listen Mode ]----
 express.listen(port, host, () => {
     console.log(alex.blue("Running ON ") + alex.red(host+alex.yellow(":")+alex.red(port)));
@@ -189,10 +209,10 @@ express.listen(port, host, () => {
     console.log("\n");
 })
 
-//----[ Chat GPT ]----
-express.get("/gpt", (req, res, nx) => {
+//----[ Chat GPT 1 ]----
+express.get("/gpt1", (req, res, nx) => {
     howMuchConnection += 1;
-    console.log(alex.yellow("{ ") + alex.green(`${howMuchConnection} `) + alex.yellow("} ") + alex.blue("Requested For ") + alex.yellow("[ ") + alex.red("/gpt")+  alex.yellow(" ]"));
+    console.log(alex.yellow("{ ") + alex.green(`${howMuchConnection} `) + alex.yellow("} ") + alex.blue("Requested For ") + alex.yellow("[ ") + alex.red("/gpt1")+  alex.yellow(" ]"));
    
     const text = req.query.text;
     if (text === undefined){
@@ -215,6 +235,38 @@ express.get("/gpt", (req, res, nx) => {
             })
         })
     }
+})
+
+//----[ Chat GPT 2 ]----
+express.get("/gpt2", (req, res, nx) => {
+  howMuchConnection += 1;
+  console.log(alex.yellow("{ ") + alex.green(`${howMuchConnection} `) + alex.yellow("} ") + alex.blue("Requested For ") + alex.yellow("[ ") + alex.red("/gpt2")+  alex.yellow(" ]"));
+  
+  const text = req.query.text;
+  
+  if (text === undefined){
+    controller.clearAllData();
+    controller.addData("data", "Please Set the text parameter");
+    res.send(controller.base);
+  }else{
+    http.get(`http://arver.ir/chatbot/api.php?text=${text}`, (result) => {
+      let data = "";
+      
+      result.on("data", (ch) => {
+        data += ch;
+      })
+      
+      result.on("end", () => {
+        controller.clearAllData();
+        controller.addData("data", data);
+        res.send(controller.base)
+      })
+    }).on("error", (err) => {
+      controller.clearAllData();
+      controller.addData("data", err);
+      res.send(controller.base);
+    })
+  }
 })
 
 //----[ Random String ]----
@@ -297,13 +349,17 @@ express.get("/reader/file", (req, res, nx) => {
     }
 })
 
+//----[ Music Downloader (local) ]----
 express.get("/music", (req, res, nx) => {
     howMuchConnection += 1;
     console.log(alex.yellow("{ ") + alex.green(`${howMuchConnection} `) + alex.yellow("} ") + alex.blue("Requested For ") + alex.yellow("[ ") + alex.red("/music")+  alex.yellow(" ]"));
 
     const musicData = {
-        'pishro-ghabrestoone-hip-hop' : "https://s2.pr3m.ir/Music/1399/5/Pishro%20-%20Ghabrestoone%20Hip%20Hop.mp3",
-        "fadaei-tablo-shode" : "http://dl.parsiamusic.ir/99/03/Fadaei%20-%20Dige%20Tablo%20Shode.mp3"
+        'pishro-ghabrestoone-hip-hop-1' : "https://s2.pr3m.ir/Music/1399/5/Pishro%20-%20Ghabrestoone%20Hip%20Hop.mp3",
+        "fadaei-tablo-shode" : "http://dl.parsiamusic.ir/99/03/Fadaei%20-%20Dige%20Tablo%20Shode.mp3",
+        "pishro-shafa" : "https://dl.musicgraaphy.com/Music/1401/11/Reza%20Pishro/Reza%20Pishro%20_%20Shafa%20%28320%29.mp3",
+        "pishro-ghabrestoone-hip-hop-2" : "https://dl.sultanmusic.ir/music/1402/5/1/Reza%20Pishro%20-%20Ghabrestoone%20HipHop%202.mp3",
+        "fadaei-blit" : "http://dl.parsiamusic.ir/00/05/Fadaei%20-%20Bilit.mp3"
     };
     const musicName = req.query.musicName; 
 
@@ -312,6 +368,35 @@ express.get("/music", (req, res, nx) => {
         controller.addData("data", "Please Set a Name For Music, Example: /music?musicName=pishro-ghabrestoone-hip-hop || for see the list of musics: /music?musicName=help")
         res.send(controller.base)
     }else if (Object.keys(musicData).includes(musicName)){
-        res.send("Hi")
+        DownloadFileUrl(musicData[musicName]).then((data) => {
+				controller.clearAllData();
+				controller.addData("data", data);
+				res.send(controller.base)
+		})
+    }else if (musicName === "help"){
+        controller.clearAllData();
+        controller.addData("data", Object.keys(musicData));
+        res.send(controller.base);
+    }else{
+        controller.clearAllData();
+        controller.addData("data")
+    }
+})
+
+//----[ IP Information ]----
+express.get("/ipextract", (req, res, nx) => {
+    howMuchConnection += 1;
+    console.log(alex.yellow("{ ") + alex.green(`${howMuchConnection} `) + alex.yellow("} ") + alex.blue("Requested For ") + alex.yellow("[ ") + alex.red("/ipextract")+  alex.yellow(" ]"));
+
+    const targetIP = req.query.ip; 
+    if (targetIP === undefined){
+        controller.clearAllData();
+        controller.addData("data", "Please Set IP, Example: /ipextract?ip=1.1.1.1");
+        res.send(controller.base);
+    }else{
+        const myd = IPExtract(targetIP);
+        controller.clearAllData();
+        controller.addData("data", myd);
+        res.send(controller.base);
     }
 })
